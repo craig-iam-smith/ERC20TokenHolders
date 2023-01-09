@@ -1,18 +1,16 @@
 import csv
+from collections import defaultdict
+
+totals = defaultdict(float)
+
 with open('export-token.csv', newline='') as csvfile:
-    reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-    totals = {'account': float(0.0)}
+    reader = csv.DictReader(csvfile, delimiter=',', quotechar='"')
     for row in reader:
-        row[6] = row[6].replace(",","")
-        if (row[7] == 'Transfer') or (row[7] == '0x60806040'):
-            if (row[4] in totals):
-                totals[row[4]] = float(totals[row[4]]) - float(row[6])
-            else:
-                totals[row[4]] = float(row[6])
-            if (row[5] in totals):
-                totals[row[5]] = float(totals[row[5]]) + float(row[6])
-            else:
-                totals[row[5]] = float(row[6])
-    for x in totals:
-        if (x != '0x0000000000000000000000000000000000000000') and (totals[x] != 0):
-            print (x, totals[x])
+        row['column_6'] = row['column_6'].replace(",","")
+        if row['column_7'] in ('Transfer', '0x60806040'):
+            totals[row['column_4']] -= float(row['column_6'])
+            totals[row['column_5']] = totals.setdefault(row['column_5'], 0.0) + float(row['column_6'])
+
+for x in totals:
+    if x != '0x0000000000000000000000000000000000000000' and totals[x] != 0:
+        print(x, totals[x])
